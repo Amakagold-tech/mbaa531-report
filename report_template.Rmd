@@ -1,0 +1,196 @@
+---
+pagetitle: "Company Size Reveals Salary Differences More Clearly Than Education"
+output:
+  html_document:
+    theme: null
+    highlight: null
+    mathjax: null
+    css: report.css
+    includes:
+      after_body: report_scroll.html
+knit: (function(input, ...) rmarkdown::render(
+    input, output_file = "index.html"))
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo      = FALSE,
+  message   = FALSE,
+  warning   = FALSE,
+  fig.width  = 6,
+  fig.height = 3.5,
+  dpi        = 150,
+  out.width  = "100%"
+)
+
+library(dplyr)
+library(ggplot2)
+library(ggridges)
+
+df <- readRDS("../Data/test4_dataset.rds")
+temp <- df$salary_usd
+temp <- gsub("...", "", temp)
+temp <- gsub("...", "", temp)
+temp <- trimws(temp)
+df$salary_usd <- as.numeric(temp)
+```
+
+<div class="report-wrap">
+
+<header class="report-header fade-in">
+  <p class="report-kicker">
+    Data Analysis &middot; MBAA 531
+  </p>
+  <h1 class="report-headline">
+    Company Size Reveals Salary Differences More Clearly Than Education
+  </h1>
+  <p class="report-deck">
+    Salary rises with experience, but company size shows clearer differences in how pay is distributed across the talent market.
+  </p>
+  <p class="report-byline">
+    Dataset: Talent Market
+  </p>
+</header>
+
+::: {.report-section .fade-in}
+
+## The Data
+
+The talent market dataset contains 23,876 observations about job-market records. Each row represents one worker or job-market observation. The dataset includes role, years of experience, education level, skills, industry, company size, country, remote work status, certifications, and salary in USD. This report focuses on how salary differs across experience levels and company sizes. Earlier cleaning converted `salary_usd` into a usable numeric column and created ordered grouping variables for comparison.
+
+:::
+
+::: {.report-section .fade-in}
+
+## The Central Finding
+
+The derived variable from Test 2 was `salary_per_experience`, calculated as `salary_usd / experience_yrs`. It measures how much salary is earned for each year of experience. This matters because it gives a simple way to compare pay relative to work experience, rather than salary alone.
+
+<div class="pull-stat fade-in">
+  <span class="stat-number">14,763.3</span>
+  <span class="stat-label">
+    Median salary earned per year of experience in the talent market dataset.
+  </span>
+</div>
+
+This value shows that the typical observation earns about $14,763 for each year of experience. A higher value means salary is high relative to experience, while a lower value means salary is more modest compared with the worker’s years of experience.
+
+:::
+
+::: {.report-section .fade-in}
+
+## A Closer Look
+
+This chart shows how salary changes as years of experience increase. The reader should look for whether the points move upward as experience rises. The amount of scatter also matters because it shows whether experience alone explains salary or whether other factors likely matter.
+
+<div class="chart-wrap">
+
+```{r scatter}
+ggplot(df, aes(x = experience_yrs, y = salary_usd)) +
+  geom_point(
+    alpha  = 0.35,
+    size   = 1.4,
+    colour = "#c0392b"
+  ) +
+  labs(title = NULL, x = "Experience years", y = "Salary USD") +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(
+      colour = "#eeeeee"
+    ),
+    axis.text = element_text(colour = "#555")
+  )
+```
+
+<p class="chart-caption">
+  Chart 1: Salary in USD plotted against years of experience.
+</p>
+</div>
+
+The chart shows a positive relationship between experience and salary, but the points are widely spread. This suggests experience matters, but it does not explain salary differences on its own.
+
+:::
+
+::: {.report-section .fade-in}
+
+## Across Groups
+
+Company size was selected because pay can vary by the resources and compensation structure of an organization. Larger companies may have wider salary ranges, while smaller companies may show more concentrated salary patterns.
+
+<div class="chart-wrap">
+
+```{r ridge}
+df <- df |>
+  mutate(
+    company_size = factor(
+      company_size,
+      levels = c("Startup", "Small", "Medium", "Large", "Enterprise")
+    )
+  )
+
+ggplot(
+  df,
+  aes(
+    x = salary_usd,
+    y = company_size,
+    fill = company_size
+  )
+) +
+  geom_density_ridges(
+    alpha     = 0.55,
+    colour    = "white",
+    linewidth = 0.4
+  ) +
+  scale_fill_manual(
+    values = rep("#c0392b", 20)
+  ) +
+  labs(title = NULL, x = "Salary USD", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position    = "none",
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(
+      colour = "#eeeeee"
+    ),
+    axis.text = element_text(colour = "#555")
+  )
+```
+
+<p class="chart-caption">
+  Chart 2: Salary distribution in USD grouped by company size.
+</p>
+</div>
+
+The ridge chart shows salary distributions across company size categories. Some groups extend further toward higher salary values, while others remain more concentrated around lower salary ranges. This reveals group-level salary differences that are less obvious in the scatter chart.
+
+:::
+
+::: {.report-section .fade-in}
+
+## What This Means
+
+The analysis shows that salary differences are not explained by one factor alone. Experience has a visible relationship with salary, but the scatterplot shows wide variation at most experience levels.
+
+Company size gives a clearer comparison because the ridge plot shows stronger differences in salary distributions across groups. This supports the headline claim that company size is more useful than education level for understanding salary variation in this dataset.
+
+A decision-maker should treat salary as the result of several factors working together. The data points toward experience and company size as useful signals, but it leaves open further questions about role, industry, country, and skills.
+
+:::
+
+<footer class="report-footer">
+  <p>
+    Published via GitHub Pages &middot;
+    MBAA 531 Data Analytics &middot;
+    Vancouver Island University
+  </p>
+  <p>
+    Source:
+    <a href="https://github.com/Amakagold-tech/mbaa531-report">
+      github.com/Amakagold-tech/mbaa531-report
+    </a>
+  </p>
+</footer>
+
+</div>
